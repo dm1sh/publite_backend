@@ -17,7 +17,7 @@ Simple docker deployment
 docker build . -t publite_backend
 
 # run it with docker
-docker run -p 8080:80 publite_backend
+docker run -p <port>:80 publite_backend
 ```
 
 Dokku deployment with image from Docker Hub
