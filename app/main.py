@@ -2,6 +2,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse
 
 from .epub import epub2html
+from .fb2 import fb22html
 
 app = FastAPI()
 

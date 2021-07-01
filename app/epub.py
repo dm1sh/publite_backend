@@ -14,7 +14,6 @@ async def epub2html(file: SpooledTemporaryFile) -> str:
     """
 
     try:
-
         tokens = await epub_to_tokens(file)
         ...
         # TODO: join tokens to HTML
@@ -29,14 +28,14 @@ async def epub2html(file: SpooledTemporaryFile) -> str:
 async def epub_to_tokens(file: SpooledTemporaryFile) -> dict[str, str]:
 
     """
-    Passes file content to ebooklib library and parses epub tokens into dict of the following format:
+    Passes file content to EbookLib library and parses epub tokens into dict of the following format:
 
-    "\<file_name\>": "\<file_content\>"
+    { "\<file_name\>": "\<file_content\>" }
 
     Where file content is either plain text for xhtml or base64 encoded data for other formats, prepared for embeding to html
     """
 
-    tokens = {"metadata": {"test"}}
+    tokens = {"metadata": {"test": "t"}}
 
     async with aiof.tempfile.NamedTemporaryFile() as tmp:
         await tmp.write(file.read())
@@ -49,6 +48,7 @@ async def epub_to_tokens(file: SpooledTemporaryFile) -> dict[str, str]:
             content = item.get_content()
 
             if item_type == ebooklib.ITEM_DOCUMENT:
+                # Adding book chapters to tokens list
                 tokens[name] = content
 
             elif item_type in (
@@ -58,6 +58,7 @@ async def epub_to_tokens(file: SpooledTemporaryFile) -> dict[str, str]:
                 ebooklib.ITEM_VIDEO,
                 ebooklib.ITEM_VECTOR,
             ):
+                # Adding assets to tokens list
                 media_type = item.media_type
                 b64_content = b64encode(content).decode()
 
