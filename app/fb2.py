@@ -1,7 +1,7 @@
 from tempfile import SpooledTemporaryFile
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element
-from typing import Optional, Union
+from typing import Optional
 from fastapi import HTTPException
 
 from .utils import Document_Tokens, strip_whitespace
@@ -71,7 +71,7 @@ def fb22tokens(file: SpooledTemporaryFile) -> Document_Tokens:
         metadata["title"] = book_info.find("./book-title", namespaces).text
         metadata["author"] = get_author(book_info.find("./author", namespaces))
         metadata["cover"] = get_cover(book_info.find("./coverpage", namespaces))
-        if not "cover" in metadata.keys():
+        if "cover" not in metadata.keys():
             metadata.pop("cover")
 
         if len(metadata.keys()):
@@ -108,7 +108,7 @@ def get_author(author: Element) -> str:
         "last-name",
     ):
         el = author.find("./" + tag_name, namespaces)
-        if not el is None:
+        if el is not None:
             res.append(el.text)
     if len(res) == 0:
         res = author.find("./nickname", namespaces).text

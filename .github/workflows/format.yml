@@ -1,4 +1,4 @@
-name: Prettier
+name: Lint and format
 
 on: push
 
@@ -27,7 +27,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Format with black
-        run: black --check .
+        run: black .
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4.1.2

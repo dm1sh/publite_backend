@@ -1,6 +1,4 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import HTMLResponse
-from typing import Union
 
 from .epub import epub2html
 from .fb2 import fb22html
