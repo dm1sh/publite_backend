@@ -24,6 +24,8 @@ async def fb22html(file: SpooledTemporaryFile) -> str:
         # TODO: join tokens to HTML
         html_content = ""
         ...
+
+        print(tokens.keys())
         return html_content
 
     except Exception as e:
@@ -44,14 +46,14 @@ def fb22tokens(file: SpooledTemporaryFile) -> dict[str, str]:
     "\<asset_id\>": "\<base64_data\>" }
     """
 
-    tokens = {"metadata": {}, "content": ""}
+    tokens = {"metadata": {}, "content": b""}
 
     book = ET.parse(file)
-    description, body, *assets = book.getroot()
+    root = book.getroot()
 
-    description: Element
-    body: Element
-    assets: list[Element]
+    description = root.find("./description", namespaces)
+    bodies = root.findall("./body", namespaces)
+    assets = root.findall("./binary", namespaces)
 
     # Reading book metadata
 
@@ -69,7 +71,8 @@ def fb22tokens(file: SpooledTemporaryFile) -> dict[str, str]:
 
     # Reading book content
 
-    tokens["content"] = ET.tostring(body).replace(b"ns0:", b"")
+    for body in bodies:
+        tokens["content"] += ET.tostring(body).replace(b"ns0:", b"")
 
     # Reading assets
 
