@@ -6,6 +6,7 @@ from ebooklib import epub
 
 from tempfile import SpooledTemporaryFile
 
+from .utils import Document_Tokens
 
 async def epub2html(file: SpooledTemporaryFile) -> str:
 
@@ -27,7 +28,7 @@ async def epub2html(file: SpooledTemporaryFile) -> str:
         return "Error! Wrong epub file format: " + str(e)
 
 
-async def epub_to_tokens(file: SpooledTemporaryFile) -> dict[str, str]:
+async def epub_to_tokens(file: SpooledTemporaryFile) -> Document_Tokens:
 
     """
     Passes file content to EbookLib library and parses epub tokens into dict of the following format:
