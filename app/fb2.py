@@ -1,7 +1,8 @@
 from tempfile import SpooledTemporaryFile
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element
-from typing import Optional
+from typing import Optional, Union
+from fastapi import HTTPException
 
 from .utils import Document_Tokens
 
@@ -13,21 +14,23 @@ namespaces = {
 HREF = f"{{{namespaces['xlink']}}}href"
 
 
-async def fb22html(file: SpooledTemporaryFile) -> str:
+async def fb22html(file: SpooledTemporaryFile) -> dict[str, str]:
 
     """
     Splits fb2 to tokens and joins them to one html file
     """
 
     try:
-
         tokens = fb22tokens(file)
+        set_cover(tokens)
         html_content = fb2body2html(tokens)
 
-        return html_content
+        return {**(tokens["metadata"]), "content": html_content}
 
     except Exception as e:
-        return "Error! Wrong FB2 file format: " + str(e)
+        raise HTTPException(
+            status_code=500, detail="Error! Wrong fb2 file format: " + str(e)
+        )
 
 
 def fb22tokens(file: SpooledTemporaryFile) -> Document_Tokens:
@@ -46,7 +49,10 @@ def fb22tokens(file: SpooledTemporaryFile) -> Document_Tokens:
     """
 
     tokens = {
-        "metadata": {},
+        "metadata": {
+            "title": "",
+            "author": "",
+        },
         "content": b"<root>",
     }
 
@@ -59,13 +65,13 @@ def fb22tokens(file: SpooledTemporaryFile) -> Document_Tokens:
 
     # Reading book metadata
 
-    book_info = description.find("title-info")
+    book_info = description.find("./title-info", namespaces)
     if book_info:
         metadata = {}
-        metadata["title"] = book_info.find("book-title", namespaces).text
-        metadata["author"] = get_author(book_info.find("author", namespaces))
-        metadata["cover"] = get_cover(book_info.find("coverpage", namespaces))
-        if metadata["cover"] is None:
+        metadata["title"] = book_info.find("./book-title", namespaces).text
+        metadata["author"] = get_author(book_info.find("./author", namespaces))
+        metadata["cover"] = get_cover(book_info.find("./coverpage", namespaces))
+        if not 'cover' in metadata.keys():
             metadata.pop("cover")
 
         if len(metadata.keys()):
@@ -101,11 +107,11 @@ def get_author(author: Element) -> str:
         "middle-name",
         "last-name",
     ):
-        el = author.find(tag_name, namespaces)
+        el = author.find("./" + tag_name, namespaces)
         if not el is None:
             res.append(el.text)
     if len(res) == 0:
-        res = author.find("nickname", namespaces).text
+        res = author.find("./nickname", namespaces).text
     else:
         res = " ".join(res)
 
@@ -119,7 +125,15 @@ def get_cover(coverpage: Optional[Element]) -> Optional[str]:
     """
 
     if coverpage:
-        return coverpage.find("image", namespaces).get(HREF)
+        return coverpage.find("./image", namespaces).get(HREF)
+
+
+def set_cover(tokens: Document_Tokens) -> None:
+    cover = tokens["metadata"]["cover"]
+    if cover is None:
+        tokens["metadata"]["cover"] = "none"
+    elif cover[0] == "#":
+        tokens["metadata"]["cover"] = tokens[cover[1:]]
 
 
 def fb2body2html(tokens: Document_Tokens) -> str:

@@ -1,5 +1,6 @@
 import aiofiles as aiof
 from base64 import b64encode
+from fastapi import HTTPException
 
 import ebooklib
 from ebooklib import epub
@@ -7,6 +8,7 @@ from ebooklib import epub
 from tempfile import SpooledTemporaryFile
 
 from .utils import Document_Tokens
+
 
 async def epub2html(file: SpooledTemporaryFile) -> str:
 
@@ -22,10 +24,12 @@ async def epub2html(file: SpooledTemporaryFile) -> str:
         # TODO: join tokens to HTML
         html_content = ""
         ...
-        return html_content
+        return {**(tokens["metadata"]), "content": html_content}
 
     except Exception as e:
-        return "Error! Wrong epub file format: " + str(e)
+        raise HTTPException(
+            status_code=500, detail="Error! Wrong epub file format: " + str(e)
+        )
 
 
 async def epub_to_tokens(file: SpooledTemporaryFile) -> Document_Tokens:
