@@ -7,7 +7,7 @@ from ebooklib import epub
 
 from tempfile import SpooledTemporaryFile
 
-from .utils import Document_Tokens
+from .utils import Document_Tokens, strip_whitespace
 
 
 async def epub2html(file: SpooledTemporaryFile) -> str:
@@ -24,7 +24,7 @@ async def epub2html(file: SpooledTemporaryFile) -> str:
         # TODO: join tokens to HTML
         html_content = ""
         ...
-        return {**(tokens["metadata"]), "content": html_content}
+        return {**(tokens["metadata"]), "content": strip_whitespace(html_content)}
 
     except Exception as e:
         raise HTTPException(

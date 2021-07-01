@@ -4,7 +4,7 @@ from xml.etree.ElementTree import Element
 from typing import Optional, Union
 from fastapi import HTTPException
 
-from .utils import Document_Tokens
+from .utils import Document_Tokens, strip_whitespace
 
 
 namespaces = {
@@ -25,7 +25,7 @@ async def fb22html(file: SpooledTemporaryFile) -> dict[str, str]:
         set_cover(tokens)
         html_content = fb2body2html(tokens)
 
-        return {**(tokens["metadata"]), "content": html_content}
+        return {**(tokens["metadata"]), "content": strip_whitespace(html_content)}
 
     except Exception as e:
         raise HTTPException(
@@ -71,7 +71,7 @@ def fb22tokens(file: SpooledTemporaryFile) -> Document_Tokens:
         metadata["title"] = book_info.find("./book-title", namespaces).text
         metadata["author"] = get_author(book_info.find("./author", namespaces))
         metadata["cover"] = get_cover(book_info.find("./coverpage", namespaces))
-        if not 'cover' in metadata.keys():
+        if not "cover" in metadata.keys():
             metadata.pop("cover")
 
         if len(metadata.keys()):
