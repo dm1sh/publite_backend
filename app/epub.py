@@ -15,6 +15,8 @@ async def epub2html(file: SpooledTemporaryFile) -> str:
 
     try:
         tokens = await epub_to_tokens(file)
+
+        print(tokens["metadata"])
         ...
         # TODO: join tokens to HTML
         html_content = ""
@@ -35,12 +37,23 @@ async def epub_to_tokens(file: SpooledTemporaryFile) -> dict[str, str]:
     Where file content is either plain text for xhtml or base64 encoded data for other formats, prepared for embeding to html
     """
 
-    tokens = {"metadata": {"test": "t"}}
+    tokens = {}
 
     async with aiof.tempfile.NamedTemporaryFile() as tmp:
         await tmp.write(file.read())
 
         book = epub.read_epub(tmp.name)
+
+        # Adding book metadata to tokens list
+
+        metadata = {}
+        metadata["title"] = convert_list(book.get_metadata("DC", "title"))
+        metadata["author"] = convert_list(book.get_metadata("DC", "creator"))
+
+        tokens["metadata"] = metadata.copy()
+
+        # Iterating over Items
+
         for item in book.get_items():
 
             item_type = item.get_type()
@@ -64,4 +77,15 @@ async def epub_to_tokens(file: SpooledTemporaryFile) -> dict[str, str]:
 
                 tokens[name] = f"data:{media_type};base64,{b64_content}"
 
+                if item_type == ebooklib.ITEM_COVER:
+                    tokens["metadata"]["cover"] = name
+
     return tokens
+
+
+def convert_list(titles_list: list[tuple[str, dict[str, str]]]):
+    res = []
+    for title_obj in titles_list:
+        res.append(title_obj[0])
+
+    return "; ".join(res)
