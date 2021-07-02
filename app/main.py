@@ -16,8 +16,8 @@ def root():
 async def create_upload_file(file: UploadFile = File(...)):
     if file.filename.endswith(".fb2"):
         content = await fb22html(file.file)
-    # elif file.filename.endswith(".epub"):
-    #     content = await epub2html(file.file)
+    elif file.filename.endswith(".epub"):
+        content = await epub2html(file.file)
     else:
         raise HTTPException(status_code=415, detail="Error! Unsupported file type")
     return content

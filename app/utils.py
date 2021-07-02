@@ -12,5 +12,16 @@ class HTMLBook(BaseModel):
     content: str
 
 
+replacements = [
+    ("&#13;", "\r"),
+    (">\s+?<", "><"),
+]
+
+
 def strip_whitespace(s: bytes) -> str:
-    return re.sub("\s+(?=<)", "", s.decode()).strip()
+    res = s.decode()
+
+    for old, new in replacements:
+        res = re.sub(old, new, res)
+
+    return res.strip()

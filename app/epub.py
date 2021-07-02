@@ -17,13 +17,11 @@ async def epub2html(file: SpooledTemporaryFile) -> str:
     """
 
     try:
-        tokens = await epub_to_tokens(file)
+        tokens, spine = await epub_to_tokens(file)
+        set_cover(tokens)
 
-        print(tokens["metadata"])
-        ...
-        # TODO: join tokens to HTML
-        html_content = ""
-        ...
+        html_content = epub_tokens2html(spine, tokens)
+
         return {**(tokens["metadata"]), "content": strip_whitespace(html_content)}
 
     except Exception as e:
@@ -32,7 +30,9 @@ async def epub2html(file: SpooledTemporaryFile) -> str:
         )
 
 
-async def epub_to_tokens(file: SpooledTemporaryFile) -> Document_Tokens:
+async def epub_to_tokens(
+    file: SpooledTemporaryFile,
+) -> tuple[Document_Tokens, list[tuple[str, str]]]:
 
     """
     Passes file content to EbookLib library and parses epub tokens into dict of the following format:
@@ -60,14 +60,14 @@ async def epub_to_tokens(file: SpooledTemporaryFile) -> Document_Tokens:
         # Iterating over Items
 
         for item in book.get_items():
+            item: epub.EpubItem
 
             item_type = item.get_type()
-            name = item.get_name()
-            content = item.get_content()
 
             if item_type == ebooklib.ITEM_DOCUMENT:
                 # Adding book chapters to tokens list
-                tokens[name] = content
+                name = item.id
+                tokens[name] = item.get_body_content()
 
             elif item_type in (
                 ebooklib.ITEM_COVER,
@@ -77,6 +77,8 @@ async def epub_to_tokens(file: SpooledTemporaryFile) -> Document_Tokens:
                 ebooklib.ITEM_VECTOR,
             ):
                 # Adding assets to tokens list
+                name = item.get_name()
+                content = item.get_content()
                 media_type = item.media_type
                 b64_content = b64encode(content).decode()
 
@@ -85,7 +87,7 @@ async def epub_to_tokens(file: SpooledTemporaryFile) -> Document_Tokens:
                 if item_type == ebooklib.ITEM_COVER:
                     tokens["metadata"]["cover"] = name
 
-    return tokens
+    return tokens, book.spine.copy()
 
 
 def convert_list(titles_list: list[tuple[str, dict[str, str]]]):
@@ -94,3 +96,26 @@ def convert_list(titles_list: list[tuple[str, dict[str, str]]]):
         res.append(title_obj[0])
 
     return "; ".join(res)
+
+
+def set_cover(tokens: Document_Tokens):
+    cover_name = tokens["metadata"]["cover"]
+    if cover_name in tokens.keys():
+        tokens["metadata"]["cover"] = tokens[cover_name]
+
+
+def epub_tokens2html(spine: list[tuple[str, str]], tokens: Document_Tokens):
+    res = b""
+
+    print(spine)
+
+    for name, enabled in spine:
+        if name in tokens.keys():
+            res += process_xhtml(tokens[name], tokens)
+
+    return res
+
+
+def process_xhtml(xhtml: bytes, tokens: Document_Tokens):
+    # TODO: Add xhtml procession
+    return xhtml
