@@ -23,5 +23,6 @@ docker run -p <port>:80 publite_backend
 Dokku deployment with image from Docker Hub
 
 ```bash
-dokku git:from-image publite_backend dm1sh/publite_backend:latest
+dokku apps:create publitebackend
+dokku git:from-image publitebackend dm1sh/publite_backend:latest
 ```
