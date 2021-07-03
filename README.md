@@ -24,5 +24,5 @@ Dokku deployment with image from Docker Hub
 
 ```bash
 dokku apps:create publitebackend
-dokku git:from-image publitebackend dm1sh/publite_backend:latest
+dokku git:from-image publitebackend publite/backend:latest
 ```
