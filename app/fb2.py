@@ -4,7 +4,7 @@ from xml.etree.ElementTree import Element
 from typing import Optional
 from fastapi import HTTPException
 
-from .utils import Document_Tokens, strip_whitespace
+from .utils import Document_Tokens, strip_whitespace, HTMLBook
 
 
 namespaces = {
@@ -14,7 +14,7 @@ namespaces = {
 HREF = f"{{{namespaces['xlink']}}}href"
 
 
-async def fb22html(file: SpooledTemporaryFile) -> dict[str, str]:
+async def fb22html(file: SpooledTemporaryFile) -> HTMLBook:
 
     """
     Splits fb2 to tokens and joins them to one html file

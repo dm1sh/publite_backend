@@ -7,10 +7,10 @@ from ebooklib import epub
 
 from tempfile import SpooledTemporaryFile
 
-from .utils import Document_Tokens, strip_whitespace
+from .utils import Document_Tokens, strip_whitespace, HTMLBook
 
 
-async def epub2html(file: SpooledTemporaryFile) -> str:
+async def epub2html(file: SpooledTemporaryFile) -> HTMLBook:
 
     """
     Splits epub to tokens and joins them to one html file
@@ -106,8 +106,6 @@ def set_cover(tokens: Document_Tokens):
 
 def epub_tokens2html(spine: list[tuple[str, str]], tokens: Document_Tokens):
     res = b""
-
-    print(spine)
 
     for name, enabled in spine:
         if name in tokens.keys():
