@@ -47,15 +47,13 @@ async def epub_to_tokens(
     async with aiof.tempfile.NamedTemporaryFile() as tmp:
         await tmp.write(file.read())
 
-        book = epub.read_epub(tmp.name)
+        # Reading book file
+        reader = epub.EpubReader(tmp.name)
+        book = reader.load()
+        reader.process()
 
-        # Adding book metadata to tokens list
-
-        metadata = {}
-        metadata["title"] = convert_list(book.get_metadata("DC", "title"))
-        metadata["author"] = convert_list(book.get_metadata("DC", "creator"))
-
-        tokens["metadata"] = metadata.copy()
+        tokens["metadata"] = read_metadata(book)
+        tokens["toc"] = {}
 
         # Iterating over Items
 
@@ -63,31 +61,40 @@ async def epub_to_tokens(
             item: epub.EpubItem
 
             item_type = item.get_type()
+            file_path = reader.opf_dir + "/" + item.get_name()
 
             if item_type == ebooklib.ITEM_DOCUMENT:
                 # Adding book chapters to tokens list
-                name = item.id
-                tokens[name] = item.get_body_content()
+                name = item.get_id()
+                tokens[file_path] = item.get_body_content()
+                tokens["toc"][name] = file_path
 
             elif item_type in (
                 ebooklib.ITEM_COVER,
                 ebooklib.ITEM_IMAGE,
-                ebooklib.ITEM_STYLE,
                 ebooklib.ITEM_VIDEO,
                 ebooklib.ITEM_VECTOR,
             ):
                 # Adding assets to tokens list
-                name = item.get_name()
+
                 content = item.get_content()
                 media_type = item.media_type
                 b64_content = b64encode(content).decode()
 
-                tokens[name] = f"data:{media_type};base64,{b64_content}"
+                tokens[file_path] = f"data:{media_type};base64,{b64_content}"
 
                 if item_type == ebooklib.ITEM_COVER:
-                    tokens["metadata"]["cover"] = name
+                    tokens["metadata"]["cover"] = file_path
 
     return tokens, book.spine.copy()
+
+
+def read_metadata(book: epub.EpubBook):
+    metadata = {}
+    metadata["title"] = book.get_metadata("DC", "title")[0][0]
+    metadata["author"] = convert_list(book.get_metadata("DC", "creator"))
+
+    return metadata.copy()
 
 
 def convert_list(titles_list: list[tuple[str, dict[str, str]]]):
@@ -99,7 +106,7 @@ def convert_list(titles_list: list[tuple[str, dict[str, str]]]):
 
 
 def set_cover(tokens: Document_Tokens):
-    cover_name = tokens["metadata"]["cover"]
+    cover_name = tokens["metadata"].get("cover")
     if cover_name in tokens.keys():
         tokens["metadata"]["cover"] = tokens[cover_name]
 
@@ -107,13 +114,14 @@ def set_cover(tokens: Document_Tokens):
 def epub_tokens2html(spine: list[tuple[str, str]], tokens: Document_Tokens):
     res = b""
 
-    for name, enabled in spine:
-        if name in tokens.keys():
-            res += process_xhtml(tokens[name], tokens)
+    for name, _ in spine:
+        file_path = tokens["toc"].get(name)
+        if file_path:
+            res += process_xhtml(file_path, tokens)
 
     return res
 
 
-def process_xhtml(xhtml: bytes, tokens: Document_Tokens):
+def process_xhtml(path: str, tokens: Document_Tokens):
     # TODO: Add xhtml procession
-    return xhtml
+    return tokens[path]
