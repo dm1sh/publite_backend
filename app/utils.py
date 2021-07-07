@@ -1,30 +1,44 @@
+"""
+Utils for publite_backend module
+"""
+
+
 from typing import Union, Optional
-from pydantic import BaseModel
 import re
 from hashlib import sha256
 
-Document_Tokens = dict[str, Union[str, dict[str, str]]]
+from pydantic import BaseModel  # pylint: disable=no-name-in-module
+
+DocumentTokens = dict[str, Union[str, dict[str, str]]]
 
 
-class HTMLBook(BaseModel):
+class HTMLBook(BaseModel):  # pylint: disable=too-few-public-methods
+    """Transitional model for returned book data"""
+
     title: str
     author: str
     cover: Optional[str]
     content: str
 
 
-class HashedHTMLBook(HTMLBook):
+class HashedHTMLBook(HTMLBook):  # pylint: disable=too-few-public-methods
+    """Model for returned book data with content hash"""
+
     hash: str
 
 
 replacements = [
-    ("&#13;", "\r"),
-    (">\s+?<", "><"),
+    ("&#13;", ""),
+    ("&#17;", ""),
+    (r">\s+?<", "><"),
 ]
 
 
-def strip_whitespace(s: bytes) -> str:
-    res = s.decode()
+def strip_whitespace(string: bytes) -> str:
+
+    """Removes"""
+
+    res = string.decode()
 
     for old, new in replacements:
         res = re.sub(old, new, res)
@@ -33,6 +47,11 @@ def strip_whitespace(s: bytes) -> str:
 
 
 def add_hash(content: HTMLBook) -> HashedHTMLBook:
+
+    """
+    Adds hash of book content
+    """
+
     h_content: HashedHTMLBook = content.copy()
     h_content["hash"] = sha256(content["content"].encode()).hexdigest()
 

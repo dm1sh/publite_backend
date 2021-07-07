@@ -1,10 +1,16 @@
+"""
+Module for FB2 file conversion to html
+"""
+
 from tempfile import SpooledTemporaryFile
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element
 from typing import Optional
+import html
+
 from fastapi import HTTPException
 
-from .utils import Document_Tokens, strip_whitespace, HTMLBook
+from .utils import DocumentTokens, strip_whitespace, HTMLBook
 
 
 namespaces = {
@@ -25,17 +31,20 @@ async def fb22html(file: SpooledTemporaryFile) -> HTMLBook:
         set_cover(tokens)
         html_content = fb2body2html(tokens)
 
-        return {**(tokens["metadata"]), "content": strip_whitespace(html_content)}
+        return {
+            **(tokens["metadata"]),
+            "content": html.escape(html.unescape(html_content.decode())),
+        }
 
-    except Exception as e:
+    except Exception as err:
         raise HTTPException(
-            status_code=500, detail="Error! Wrong fb2 file format: " + str(e)
-        )
+            status_code=500, detail="Error! Wrong fb2 file format: " + str(err)
+        ) from err
 
 
-def fb22tokens(file: SpooledTemporaryFile) -> Document_Tokens:
+def fb22tokens(file: SpooledTemporaryFile) -> DocumentTokens:
 
-    """
+    r"""
     Parses fb2 file as xml document.
     It puts book metadata, its content and media to `tokens` dictionary and returns it.
 
@@ -74,7 +83,7 @@ def fb22tokens(file: SpooledTemporaryFile) -> Document_Tokens:
         if "cover" not in metadata.keys():
             metadata.pop("cover")
 
-        if len(metadata.keys()):
+        if len(metadata.keys()) != 0:
             tokens["metadata"] = metadata.copy()
 
     # Reading book content
@@ -107,9 +116,9 @@ def get_author(author: Element) -> str:
         "middle-name",
         "last-name",
     ):
-        el = author.find("./" + tag_name, namespaces)
-        if el is not None:
-            res.append(el.text)
+        tag = author.find("./" + tag_name, namespaces)
+        if tag is not None:
+            res.append(tag.text)
     if len(res) == 0:
         res = author.find("./nickname", namespaces).text
     else:
@@ -127,8 +136,11 @@ def get_cover(coverpage: Optional[Element]) -> Optional[str]:
     if coverpage:
         return coverpage.find("./image", namespaces).get(HREF)
 
+    return None
 
-def set_cover(tokens: Document_Tokens) -> None:
+
+def set_cover(tokens: DocumentTokens) -> None:
+    """Gets cover from book and sets it in metadata"""
     cover = tokens["metadata"]["cover"]
     if cover is None:
         tokens["metadata"]["cover"] = "none"
@@ -136,7 +148,7 @@ def set_cover(tokens: Document_Tokens) -> None:
         tokens["metadata"]["cover"] = tokens[cover[1:]]
 
 
-def fb2body2html(tokens: Document_Tokens) -> str:
+def fb2body2html(tokens: DocumentTokens) -> str:
 
     """
     Convert fb2 xml to html, joins bodies into one string
@@ -144,14 +156,14 @@ def fb2body2html(tokens: Document_Tokens) -> str:
 
     res = b""
 
-    xml_root = ET.fromstring(tokens["content"])
+    xml_root = ET.fromstring(strip_whitespace(tokens["content"]))
     for body in xml_root.iterfind("./body"):
         res += process_section(body, tokens)
 
     return res
 
 
-def process_section(body: Element, tokens: Document_Tokens) -> str:
+def process_section(body: Element, tokens: DocumentTokens) -> str:
 
     """
     Processes individual sections, recursively goes throw sections tree
@@ -159,11 +171,11 @@ def process_section(body: Element, tokens: Document_Tokens) -> str:
 
     res = b"<section>\n"
 
-    for tag in ("title", "epigraph", "annotation"):
-        el = body.find("./" + tag)
-        if el:
-            process_content(el, tokens)
-            res += children_to_html(el)
+    for tag_name in ("title", "epigraph", "annotation"):
+        tag = body.find("./" + tag_name)
+        if tag:
+            process_content(tag, tokens)
+            res += children_to_html(tag)
     image = body.find("./image")
     if image:
         process_image(image, tokens)
@@ -193,18 +205,18 @@ def children_to_html(root: Element) -> str:
     return res
 
 
-def process_image(el: Element, tokens: Document_Tokens) -> None:
+def process_image(element: Element, tokens: DocumentTokens) -> None:
 
-    """
+    r"""
     Converts fb2 \<image /\> to html \<img /\>. Replaces xlink:href with src="\<base64_image_data\>"
     """
 
-    el.tag = "img"
+    element.tag = "img"
 
-    href = el.get(HREF)
-    el.attrib.pop(HREF)
+    href = element.get(HREF)
+    element.attrib.pop(HREF)
 
-    el.set("src", tokens[href[1:]] if href[0] == "#" else href)
+    element.set("src", tokens[href[1:]] if href[0] == "#" else href)
 
 
 tag_replacement = {
@@ -219,14 +231,12 @@ tag_with_class = {
     "cite": "div",
     "poem": "div",
     "stanza": "div",
-    "poem": "div",
-    "poem": "div",
     "epigraph": "div",
     "text-author": "p",
 }
 
 
-def process_content(root: Element, tokens: Document_Tokens) -> None:
+def process_content(root: Element, tokens: DocumentTokens) -> None:
 
     """
     Converts fb2 xml tag names to html equivalents and my own styled elements.
