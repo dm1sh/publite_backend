@@ -49,5 +49,9 @@ Dokku deployment with image from Docker Hub
 
 ```bash
 dokku apps:create publitebackend
+
+# increase file size limit to be able to upload bigger books
+dokku nginx:set publitebackend client_max_body_size 50m
+
 dokku git:from-image publitebackend publite/backend:latest
 ```
