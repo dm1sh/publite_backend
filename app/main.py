@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
 from .epub import epub2html

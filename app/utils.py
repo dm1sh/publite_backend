@@ -3,9 +3,9 @@ Utils for publite_backend module
 """
 
 
-from typing import Union, Optional
 import re
 from hashlib import sha256
+from typing import Optional, Union
 
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 

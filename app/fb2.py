@@ -2,16 +2,15 @@
 Module for FB2 file conversion to html
 """
 
-from tempfile import SpooledTemporaryFile
-import xml.etree.ElementTree as ET
-from xml.etree.ElementTree import Element
-from typing import Optional
 import html
+import xml.etree.ElementTree as ET
+from tempfile import SpooledTemporaryFile
+from typing import Optional
+from xml.etree.ElementTree import Element
 
 from fastapi import HTTPException
 
-from .utils import DocumentTokens, strip_whitespace, HTMLBook
-
+from .utils import DocumentTokens, HTMLBook, strip_whitespace
 
 namespaces = {
     "": "http://www.gribuser.ru/xml/fictionbook/2.0",

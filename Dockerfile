@@ -2,9 +2,9 @@ FROM python
 
 WORKDIR /srv
 
-COPY ./requirements.txt /srv/requirements.txt
+COPY ./requirements /srv/requirements
 
-RUN pip install -r requirements.txt
+RUN pip install -r requirements/prod.txt
 
 EXPOSE 80
 

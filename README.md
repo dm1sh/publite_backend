@@ -10,10 +10,35 @@ Backend for online ebook viewer publite
 
 ## Deploy
 
+Run app locally (development only!)
+
+```bash
+# install requirements
+pip install -r requirements/dev.txt
+
+# run app with uvicorn
+uvicorn app.main:app --reload --port <port>
+```
+
+Run app locally (test prod)
+
+```bash
+# install requirements
+pip install -r requirements/prod.txt
+
+# run app with uvicorn
+uvicorn app.main:app --port <port>
+
+# or
+
+# run with python script
+python run.py
+```
+
 Simple docker deployment
 
 ```bash
-# build docker image 
+# build docker image
 docker build . -t publite_backend
 
 # run it with docker

@@ -2,19 +2,19 @@
 Module for EPUB file conversion to html
 """
 
-from base64 import b64encode
-from functools import cache
 import html
 import os
+from base64 import b64encode
+from functools import cache
 from tempfile import SpooledTemporaryFile
 
 import aiofiles as aiof
-from fastapi import HTTPException
-from lxml import etree
 import ebooklib
 from ebooklib import epub
+from fastapi import HTTPException
+from lxml import etree
 
-from .utils import DocumentTokens, strip_whitespace, HTMLBook
+from .utils import DocumentTokens, HTMLBook, strip_whitespace
 
 parser = etree.XMLParser(recover=True)
 
