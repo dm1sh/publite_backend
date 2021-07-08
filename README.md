@@ -55,3 +55,8 @@ dokku nginx:set publitebackend client_max_body_size 50m
 
 dokku git:from-image publitebackend publite/backend:latest
 ```
+
+# TODO
+* Separate epub and fb2 files to python modules
+* Rewrite own `.opf` file parsing to get rid of dependency on EbookLib
+* Add cli interfaces for epub and fb2 libs
