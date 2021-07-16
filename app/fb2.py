@@ -32,7 +32,7 @@ async def fb22html(file: SpooledTemporaryFile) -> HTMLBook:
 
         return {
             **(tokens["metadata"]),
-            "content": html.escape(html.unescape(html_content.decode())),
+            "content": html.unescape(html_content.decode()),
         }
 
     except Exception as err:
@@ -42,7 +42,6 @@ async def fb22html(file: SpooledTemporaryFile) -> HTMLBook:
 
 
 def fb22tokens(file: SpooledTemporaryFile) -> DocumentTokens:
-
     r"""
     Parses fb2 file as xml document.
     It puts book metadata, its content and media to `tokens` dictionary and returns it.
@@ -78,7 +77,8 @@ def fb22tokens(file: SpooledTemporaryFile) -> DocumentTokens:
         metadata = {}
         metadata["title"] = book_info.find("./book-title", namespaces).text
         metadata["author"] = get_author(book_info.find("./author", namespaces))
-        metadata["cover"] = get_cover(book_info.find("./coverpage", namespaces))
+        metadata["cover"] = get_cover(
+            book_info.find("./coverpage", namespaces))
         if "cover" not in metadata.keys():
             metadata.pop("cover")
 
@@ -104,7 +104,6 @@ def fb22tokens(file: SpooledTemporaryFile) -> DocumentTokens:
 
 
 def get_author(author: Element) -> str:
-
     """
     Converts author xml structure to string
     """
@@ -127,7 +126,6 @@ def get_author(author: Element) -> str:
 
 
 def get_cover(coverpage: Optional[Element]) -> Optional[str]:
-
     """
     Extracts cover image id if exists
     """
@@ -148,7 +146,6 @@ def set_cover(tokens: DocumentTokens) -> None:
 
 
 def fb2body2html(tokens: DocumentTokens) -> str:
-
     """
     Convert fb2 xml to html, joins bodies into one string
     """
@@ -163,7 +160,6 @@ def fb2body2html(tokens: DocumentTokens) -> str:
 
 
 def process_section(body: Element, tokens: DocumentTokens) -> str:
-
     """
     Processes individual sections, recursively goes throw sections tree
     """
@@ -191,7 +187,6 @@ def process_section(body: Element, tokens: DocumentTokens) -> str:
 
 
 def children_to_html(root: Element) -> str:
-
     """
     Converts xml tag children to string
     """
@@ -205,7 +200,6 @@ def children_to_html(root: Element) -> str:
 
 
 def process_image(element: Element, tokens: DocumentTokens) -> None:
-
     r"""
     Converts fb2 \<image /\> to html \<img /\>. Replaces xlink:href with src="\<base64_image_data\>"
     """
@@ -236,7 +230,6 @@ tag_with_class = {
 
 
 def process_content(root: Element, tokens: DocumentTokens) -> None:
-
     """
     Converts fb2 xml tag names to html equivalents and my own styled elements.
     Resolves binary data dependencies

@@ -108,7 +108,6 @@ async def epub_to_tokens(
 
 
 def read_metadata(book: epub.EpubBook) -> dict[str, str]:
-
     """
     Reads metadata from xml to dict
     """
@@ -121,7 +120,6 @@ def read_metadata(book: epub.EpubBook) -> dict[str, str]:
 
 
 def convert_list(titles_list: list[tuple[str, dict[str, str]]]) -> str:
-
     """
     Joins titles list to one string
     """
@@ -134,7 +132,6 @@ def convert_list(titles_list: list[tuple[str, dict[str, str]]]) -> str:
 
 
 def set_cover(tokens: DocumentTokens) -> None:
-
     """
     Converts cover file name to base64 image stored in `tokens`
     """
@@ -145,7 +142,6 @@ def set_cover(tokens: DocumentTokens) -> None:
 
 
 def epub_tokens2html(spine: list[tuple[str, str]], tokens: DocumentTokens) -> bytes:
-
     """
     Joins chapters in `spice` to one html string
     """
@@ -157,11 +153,10 @@ def epub_tokens2html(spine: list[tuple[str, str]], tokens: DocumentTokens) -> by
         if file_path:
             res += process_xhtml(file_path, tokens)
 
-    return html.escape(html.unescape(res))
+    return html.unescape(res)
 
 
 def process_xhtml(path: str, tokens: DocumentTokens) -> bytes:
-
     """
     Processes content of one xml body
     """
@@ -179,7 +174,6 @@ def process_xhtml(path: str, tokens: DocumentTokens) -> bytes:
 
 
 def process_content(node: etree.Element, path: str, tokens: DocumentTokens) -> None:
-
     """
     Recursive function for xml element convertion to valid html
     """
@@ -219,7 +213,6 @@ def process_content(node: etree.Element, path: str, tokens: DocumentTokens) -> N
 
 
 def process_a_element(node: etree.Element, path: str):
-
     r"""
     Converts `filed` links to ids in \<a\> element
     """
@@ -237,7 +230,6 @@ def process_a_element(node: etree.Element, path: str):
 
 
 def process_media_element(node: etree.Element, path: str, tokens: DocumentTokens):
-
     """
     Replaces file paths to base64 encoded media in `src` and `srcset` tags
     """
@@ -256,7 +248,6 @@ def process_media_element(node: etree.Element, path: str, tokens: DocumentTokens
 
 
 def rel_to_abs_path(parent: str, rel: str):
-
     """
     Helper for relative path to media convertion to absolute
     """
@@ -266,7 +257,6 @@ def rel_to_abs_path(parent: str, rel: str):
 
 @cache
 def path_to_name(path: str) -> str:
-
     """
     Helper function for getting file name
     """
@@ -275,7 +265,6 @@ def path_to_name(path: str) -> str:
 
 
 def children_to_html(root: etree.Element) -> bytes:
-
     """
     Converts all xml children of element to string and joins them
     """
