@@ -3,11 +3,16 @@
 from datetime import datetime
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
 from .epub import epub2html
 from .fb2 import fb22html
 from .utils import HashedHTMLBook, add_hash
+
+origins = (
+    "*"
+)
 
 
 class DebugInfo(BaseModel):  # pylint: disable=too-few-public-methods
@@ -17,6 +22,14 @@ class DebugInfo(BaseModel):  # pylint: disable=too-few-public-methods
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 start_time = datetime.now()
 
@@ -47,7 +60,8 @@ async def create_upload_file(file: UploadFile = File(...)):
     elif file.filename.endswith(".epub"):
         content = await epub2html(file.file)
     else:
-        raise HTTPException(status_code=415, detail="Error! Unsupported file type")
+        raise HTTPException(
+            status_code=415, detail="Error! Unsupported file type")
 
     h_content = add_hash(content)
 

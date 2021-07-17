@@ -8,7 +8,7 @@ from base64 import b64encode
 from functools import cache
 from tempfile import SpooledTemporaryFile
 
-import aiofiles as aiof
+import aiofiles
 import ebooklib
 from ebooklib import epub
 from fastapi import HTTPException
@@ -61,7 +61,7 @@ async def epub_to_tokens(
 
     tokens = {}
 
-    async with aiof.tempfile.NamedTemporaryFile() as tmp:
+    async with aiofiles.tempfile.NamedTemporaryFile() as tmp:
         await tmp.write(file.read())
 
         # Reading book file

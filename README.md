@@ -57,6 +57,7 @@ dokku git:from-image publitebackend publite/backend:latest
 ```
 
 # TODO
-* Separate epub and fb2 files to python modules
-* Rewrite own `.opf` file parsing to get rid of dependency on EbookLib
-* Add cli interfaces for epub and fb2 libs
+
+- Separate epub and fb2 files to python modules
+- Rewrite own `.opf` file parsing to get rid of dependency on EbookLib
+- Add cli interfaces for epub and fb2 libs
